@@ -1,5 +1,6 @@
 import './globals.css';
 import { QueryProvider } from '@/app/components/providers/QueryProvider';
+import { ToastProvider } from '@/app/components/providers/ToastProvider';
 import { AuthProvider } from '@/app/components/providers/AuthProvider';
 
 export const metadata = { title: 'ERP', description: 'Manufacturing ERP' };
@@ -9,7 +10,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <QueryProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <ToastProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>

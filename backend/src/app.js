@@ -8,6 +8,7 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/users/users.routes.js';
 import masterdataRoutes from './modules/masterdata/masterdata.routes.js';
+import stockRoutes from './modules/stock/stock.routes.js';
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.get('/health', (req, res) => res.json({ ok: true, env: env.NODE_ENV }));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/masterdata', masterdataRoutes);
-
+app.use('/api/stock', stockRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

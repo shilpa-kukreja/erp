@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse } from 'lucide-react';
+import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History } from 'lucide-react';
 import { useAuth } from '@/app/components/providers/AuthProvider';
 
 const ALL = ['owner', 'office', 'store', 'dispatch'];
@@ -22,6 +22,9 @@ const sections = [
       { href: '/masterdata/parties', label: 'Parties', icon: Users2, roles: ALL },
       { href: '/masterdata/units', label: 'Units', icon: Ruler, roles: ALL },
       { href: '/masterdata/godowns', label: 'Godowns', icon: Warehouse, roles: ALL },
+      // After Godowns, add:
+      { href: '/stock', label: 'Stock', icon: Boxes, roles: ALL },
+      { href: '/stock/ledger', label: 'Stock Ledger', icon: History, roles: ALL },
     ],
   },
 ];

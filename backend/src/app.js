@@ -9,10 +9,12 @@ import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/users/users.routes.js';
 import masterdataRoutes from './modules/masterdata/masterdata.routes.js';
 import stockRoutes from './modules/stock/stock.routes.js';
+import dns  from "dns";
 
 const app = express();
 
 app.set('trust proxy', 1); // Required on Render
+dns.setServers(["1.1.1.1","8.8.8.8"]);
 app.use(helmet());
 app.use(cors({
   origin: env.CLIENT_URL.split(',').map((s) => s.trim()),

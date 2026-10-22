@@ -10,7 +10,15 @@ import userRoutes from './modules/users/users.routes.js';
 import masterdataRoutes from './modules/masterdata/masterdata.routes.js';
 import stockRoutes from './modules/stock/stock.routes.js';
 import purchaseRoutes from './modules/purchase/purchase.routes.js';
+<<<<<<< HEAD
 import productionRoutes from './modules/production/production.routes.js'
+=======
+
+import supplierPaymentsRoutes from './modules/supplier-payments/supplier-payments.routes.js';   // supelier payment 
+import purchaseReturnsRoutes from './modules/purchase-returns/purchase-returns.routes.js';
+
+
+>>>>>>> 34f50f4308da33b1c57a53ff0527947304bd15e0
 import dns  from "dns";
 
 const app = express();
@@ -33,7 +41,17 @@ app.use('/api/users', userRoutes);
 app.use('/api/masterdata', masterdataRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/purchase', purchaseRoutes);
+<<<<<<< HEAD
 app.use('/api/production', productionRoutes);
+=======
+
+app.use('/api/supplier-payments', supplierPaymentsRoutes);
+app.use('/api/purchase-returns', purchaseReturnsRoutes);
+
+
+
+
+>>>>>>> 34f50f4308da33b1c57a53ff0527947304bd15e0
 app.use(notFound);
 app.use(errorHandler);
 

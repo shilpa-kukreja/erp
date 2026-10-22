@@ -2,7 +2,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+<<<<<<< HEAD
 import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History ,ShoppingCart,FlaskConical, Factory} from 'lucide-react';
+=======
+import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History ,ShoppingCart,Wallet} from 'lucide-react';
+>>>>>>> 34f50f4308da33b1c57a53ff0527947304bd15e0
 import { useAuth } from '@/app/components/providers/AuthProvider';
 
 const ALL = ['owner', 'office', 'store', 'dispatch'];
@@ -31,6 +35,8 @@ const sections = [
   title: 'Operations',
   items: [
     { href: '/purchase', label: 'Purchase', icon: ShoppingCart, roles: ['owner', 'office', 'store', 'dispatch'] },
+    { href: '/payables', label: 'Payables', icon: Wallet, roles: ['owner', 'office', 'store', 'dispatch'] }, 
+
   ],
 },
 {

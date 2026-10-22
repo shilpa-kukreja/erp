@@ -2,11 +2,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-<<<<<<< HEAD
-import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History ,ShoppingCart,FlaskConical, Factory} from 'lucide-react';
-=======
-import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History ,ShoppingCart,Wallet} from 'lucide-react';
->>>>>>> 34f50f4308da33b1c57a53ff0527947304bd15e0
+import { LayoutDashboard, Users, Package, Users2, Ruler,Wallet, Warehouse,Boxes, History ,ShoppingCart,FlaskConical, Factory} from 'lucide-react';
+
 import { useAuth } from '@/app/components/providers/AuthProvider';
 
 const ALL = ['owner', 'office', 'store', 'dispatch'];

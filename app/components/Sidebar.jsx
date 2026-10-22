@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History } from 'lucide-react';
+import { LayoutDashboard, Users, Package, Users2, Ruler, Warehouse,Boxes, History ,ShoppingCart} from 'lucide-react';
 import { useAuth } from '@/app/components/providers/AuthProvider';
 
 const ALL = ['owner', 'office', 'store', 'dispatch'];
@@ -27,6 +27,12 @@ const sections = [
       { href: '/stock/ledger', label: 'Stock Ledger', icon: History, roles: ALL },
     ],
   },
+  {
+  title: 'Operations',
+  items: [
+    { href: '/purchase', label: 'Purchase', icon: ShoppingCart, roles: ['owner', 'office', 'store', 'dispatch'] },
+  ],
+},
 ];
 
 export function Sidebar() {

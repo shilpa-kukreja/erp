@@ -2,6 +2,10 @@ import Unit from '../../models/Unit.js';
 import Godown from '../../models/Godown.js';
 import Product from '../../models/Product.js';
 import Party from '../../models/Party.js';
+// ===== DELETE GUARDS =====
+import StockLedger from '../../models/StockLedger.js';
+import StockBalance from '../../models/StockBalance.js';
+// import PurchaseBill from '../../models/PurchaseBill.js';
 
 function httpError(status, message) {
   const e = new Error(message);
@@ -273,4 +277,56 @@ export async function seedDefaults() {
   }
 
   return summary;
+}
+
+
+
+
+
+
+export async function deleteUnit(id) {
+  const inUse = await Product.countDocuments({ unit: id });
+  if (inUse > 0) {
+    throw httpError(409, `Cannot delete: ${inUse} product(s) use this unit. Deactivate instead.`);
+  }
+  const deleted = await Unit.findByIdAndDelete(id);
+  if (!deleted) throw httpError(404, 'Unit not found');
+  return { deleted: true };
+}
+
+export async function deleteGodown(id) {
+  const [stockRows, purchases] = await Promise.all([
+    StockBalance.countDocuments({ godownId: id }),
+    PurchaseBill.countDocuments({ godownId: id }),
+  ]);
+  if (stockRows > 0 || purchases > 0) {
+    throw httpError(409, `Cannot delete: godown has ${stockRows} stock row(s) and ${purchases} purchase bill(s). Deactivate instead.`);
+  }
+  const deleted = await Godown.findByIdAndDelete(id);
+  if (!deleted) throw httpError(404, 'Godown not found');
+  return { deleted: true };
+}
+
+export async function deleteProduct(id) {
+  const [ledger, balance, purchases] = await Promise.all([
+    StockLedger.countDocuments({ productId: id }),
+    StockBalance.countDocuments({ productId: id }),
+    PurchaseBill.countDocuments({ 'items.productId': id }),
+  ]);
+  if (ledger > 0 || balance > 0 || purchases > 0) {
+    throw httpError(409, `Cannot delete: product has ${ledger} stock entr(y/ies), ${balance} balance row(s), ${purchases} purchase bill(s). Deactivate instead.`);
+  }
+  const deleted = await Product.findByIdAndDelete(id);
+  if (!deleted) throw httpError(404, 'Product not found');
+  return { deleted: true };
+}
+
+export async function deleteParty(id) {
+  const purchases = await PurchaseBill.countDocuments({ supplierId: id });
+  if (purchases > 0) {
+    throw httpError(409, `Cannot delete: party has ${purchases} purchase bill(s). Deactivate instead.`);
+  }
+  const deleted = await Party.findByIdAndDelete(id);
+  if (!deleted) throw httpError(404, 'Party not found');
+  return { deleted: true };
 }

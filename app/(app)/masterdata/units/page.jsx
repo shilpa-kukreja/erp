@@ -1,7 +1,161 @@
+// 'use client';
+// import { useState, useEffect } from 'react';
+// import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// import { Plus, Search, Pencil } from 'lucide-react';
+// import { masterdataApi } from '@/lib/api';
+// import { useAuth } from '@/app/components/providers/AuthProvider';
+// import { useToast } from '@/app/components/providers/ToastProvider';
+// import { Input } from '@/app/components/ui/input';
+// import { Select } from '@/app/components/ui/select';
+// import { Button } from '@/app/components/ui/button';
+// import { Badge } from '@/app/components/ui/badge';
+// import { UnitDialog } from '@/app/components/masterdata/UnitDialog';
+
+// export default function UnitsPage() {
+//   const { user } = useAuth();
+//   const { toast } = useToast();
+//   const qc = useQueryClient();
+//   const canWrite = ['owner', 'office'].includes(user?.role);
+
+//   const [filters, setFilters] = useState({ search: '', type: '', isActive: '', page: 1, limit: 20 });
+//   const [searchInput, setSearchInput] = useState('');
+//   const [dialog, setDialog] = useState({ open: false, mode: 'create', unit: null });
+
+//   const listQuery = useQuery({
+//     queryKey: ['units', filters],
+//     queryFn: () => masterdataApi.units.list(filters),
+//   });
+
+//   const items = listQuery.data?.data?.items || [];
+//   const pagination = listQuery.data?.data?.pagination;
+
+//   const saveMutation = useMutation({
+//     mutationFn: ({ id, data }) => id ? masterdataApi.units.update(id, data) : masterdataApi.units.create(data),
+//     onSuccess: () => {
+//       toast(dialog.mode === 'edit' ? 'Unit updated' : 'Unit created', 'success');
+//       qc.invalidateQueries({ queryKey: ['units'] });
+//       setDialog({ open: false, mode: 'create', unit: null });
+//     },
+//     onError: (e) => toast(e.message || 'Save failed', 'error'),
+//   });
+
+//   const seedMutation = useMutation({
+//     mutationFn: () => masterdataApi.seedDefaults(),
+//     onSuccess: (res) => {
+//       toast(`Seeded ${res.data.unitsCreated} units, ${res.data.godownsCreated} godowns`, 'success');
+//       qc.invalidateQueries({ queryKey: ['units'] });
+//       qc.invalidateQueries({ queryKey: ['godowns'] });
+//     },
+//     onError: (e) => toast(e.message, 'error'),
+//   });
+
+//   const onSearch = () => setFilters((f) => ({ ...f, search: searchInput, page: 1 }));
+
+//   return (
+//     <div className="space-y-6">
+//       <div className="flex flex-wrap items-center justify-between gap-3">
+//         <div>
+//           <h1 className="text-2xl font-semibold">Units</h1>
+//           <p className="text-sm text-muted-foreground">Measurement units used across products</p>
+//         </div>
+//         <div className="flex gap-2">
+//           {canWrite && items.length === 0 && !listQuery.isLoading && (
+//             <Button variant="outline" onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending}>
+//               {seedMutation.isPending ? 'Seeding…' : 'Seed Defaults'}
+//             </Button>
+//           )}
+//           {canWrite && (
+//             <Button onClick={() => setDialog({ open: true, mode: 'create', unit: null })}>
+//               <Plus className="h-4 w-4" /> New Unit
+//             </Button>
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="flex flex-wrap items-center gap-2">
+//         <div className="relative flex-1 min-w-[220px]">
+//           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+//           <Input placeholder="Search name or symbol…" className="pl-9" value={searchInput}
+//             onChange={(e) => setSearchInput(e.target.value)}
+//             onKeyDown={(e) => e.key === 'Enter' && onSearch()} />
+//         </div>
+//         <Select value={filters.type} onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value, page: 1 }))} className="w-40">
+//           <option value="">All Types</option>
+//           <option value="weight">Weight</option>
+//           <option value="volume">Volume</option>
+//           <option value="count">Count</option>
+//         </Select>
+//         <Select value={filters.isActive} onChange={(e) => setFilters((f) => ({ ...f, isActive: e.target.value, page: 1 }))} className="w-36">
+//           <option value="">All Status</option>
+//           <option value="true">Active</option>
+//           <option value="false">Inactive</option>
+//         </Select>
+//         <Button variant="outline" onClick={onSearch}>Search</Button>
+//       </div>
+
+//       <div className="rounded-lg border bg-white">
+//         <div className="overflow-x-auto">
+//           <table className="w-full text-sm">
+//             <thead className="border-b bg-muted/40 text-left">
+//               <tr>
+//                 <th className="px-4 py-3 font-medium">Name</th>
+//                 <th className="px-4 py-3 font-medium">Symbol</th>
+//                 <th className="px-4 py-3 font-medium">Type</th>
+//                 <th className="px-4 py-3 font-medium">Decimals</th>
+//                 <th className="px-4 py-3 font-medium">Status</th>
+//                 <th className="px-4 py-3 font-medium text-right">Actions</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {listQuery.isLoading && <tr><td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">Loading…</td></tr>}
+//               {!listQuery.isLoading && items.length === 0 && <tr><td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">No units yet</td></tr>}
+//               {items.map((u) => (
+//                 <tr key={u.id} className="border-b last:border-0">
+//                   <td className="px-4 py-3 font-medium">{u.name}</td>
+//                   <td className="px-4 py-3">{u.symbol}</td>
+//                   <td className="px-4 py-3 capitalize">{u.type}</td>
+//                   <td className="px-4 py-3">{u.decimalPlaces}</td>
+//                   <td className="px-4 py-3"><Badge variant={u.isActive ? 'success' : 'destructive'}>{u.isActive ? 'Active' : 'Inactive'}</Badge></td>
+//                   <td className="px-4 py-3 text-right">
+//                     {canWrite && (
+//                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setDialog({ open: true, mode: 'edit', unit: u })}>
+//                         <Pencil className="h-4 w-4" />
+//                       </Button>
+//                     )}
+//                   </td>
+//                 </tr>
+//               ))}
+//             </tbody>
+//           </table>
+//         </div>
+//         {pagination && pagination.totalPages > 1 && (
+//           <div className="flex items-center justify-between border-t px-4 py-3 text-sm">
+//             <div className="text-muted-foreground">Page {pagination.page} of {pagination.totalPages} • {pagination.total} total</div>
+//             <div className="flex gap-2">
+//               <Button variant="outline" size="sm" disabled={pagination.page <= 1} onClick={() => setFilters((f) => ({ ...f, page: f.page - 1 }))}>Previous</Button>
+//               <Button variant="outline" size="sm" disabled={pagination.page >= pagination.totalPages} onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}>Next</Button>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       <UnitDialog
+//         open={dialog.open}
+//         onOpenChange={(open) => !open && setDialog({ open: false, mode: 'create', unit: null })}
+//         mode={dialog.mode}
+//         unit={dialog.unit}
+//         onSubmit={(data) => saveMutation.mutate({ id: dialog.unit?.id, data })}
+//         saving={saveMutation.isPending}
+//       />
+//     </div>
+//   );
+// }
+
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Pencil } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
 import { masterdataApi } from '@/lib/api';
 import { useAuth } from '@/app/components/providers/AuthProvider';
 import { useToast } from '@/app/components/providers/ToastProvider';
@@ -9,6 +163,7 @@ import { Input } from '@/app/components/ui/input';
 import { Select } from '@/app/components/ui/select';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
+import { ConfirmDialog } from '@/app/components/ui/alert-dialog';
 import { UnitDialog } from '@/app/components/masterdata/UnitDialog';
 
 export default function UnitsPage() {
@@ -20,6 +175,7 @@ export default function UnitsPage() {
   const [filters, setFilters] = useState({ search: '', type: '', isActive: '', page: 1, limit: 20 });
   const [searchInput, setSearchInput] = useState('');
   const [dialog, setDialog] = useState({ open: false, mode: 'create', unit: null });
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const listQuery = useQuery({
     queryKey: ['units', filters],
@@ -37,6 +193,16 @@ export default function UnitsPage() {
       setDialog({ open: false, mode: 'create', unit: null });
     },
     onError: (e) => toast(e.message || 'Save failed', 'error'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => masterdataApi.units.delete(id),
+    onSuccess: () => {
+      toast('Deleted', 'success');
+      qc.invalidateQueries({ queryKey: ['units'] });
+      setDeleteTarget(null);
+    },
+    onError: (e) => toast(e.message || 'Delete failed', 'error'),
   });
 
   const seedMutation = useMutation({
@@ -122,6 +288,12 @@ export default function UnitsPage() {
                         <Pencil className="h-4 w-4" />
                       </Button>
                     )}
+                    {user?.role === 'owner' && (
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Delete permanently"
+                        onClick={() => setDeleteTarget(u)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -146,6 +318,19 @@ export default function UnitsPage() {
         unit={dialog.unit}
         onSubmit={(data) => saveMutation.mutate({ id: dialog.unit?.id, data })}
         saving={saveMutation.isPending}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete Permanently"
+        description={deleteTarget
+          ? `Delete "${deleteTarget.name}" forever? This only works if it has never been used. If it's been used, deactivate instead.`
+          : ''}
+        confirmText="Delete"
+        confirmVariant="destructive"
+        onConfirm={() => deleteMutation.mutate(deleteTarget.id)}
+        loading={deleteMutation.isPending}
       />
     </div>
   );

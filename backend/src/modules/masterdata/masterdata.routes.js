@@ -43,4 +43,17 @@ router.get('/parties/:partyId/effective-price/:productId', authorize(...READ), v
 // Seed
 router.post('/seed-defaults', authorize(ROLES.OWNER), ctrl.seedDefaults);
 
+
+// After existing units routes:
+router.delete('/units/:id', authorize(ROLES.OWNER), validate(idParam), ctrl.deleteUnit);
+
+// After existing godowns routes:
+router.delete('/godowns/:id', authorize(ROLES.OWNER), validate(idParam), ctrl.deleteGodown);
+
+// After existing products routes:
+router.delete('/products/:id', authorize(ROLES.OWNER), validate(idParam), ctrl.deleteProduct);
+
+// After existing parties routes:
+router.delete('/parties/:id', authorize(ROLES.OWNER), validate(idParam), ctrl.deleteParty);
+
 export default router;

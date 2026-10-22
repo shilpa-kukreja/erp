@@ -84,3 +84,31 @@ export const seedDefaults = asyncHandler(async (req, res) => {
   await writeAudit(req, { action: 'masterdata.seed_defaults', entity: 'System', after: result });
   res.json({ success: true, data: result });
 });
+
+
+
+
+
+export const deleteUnit = asyncHandler(async (req, res) => {
+  const result = await svc.deleteUnit(req.params.id);
+  await writeAudit(req, { action: 'unit.delete', entity: 'Unit', entityId: req.params.id });
+  res.json({ success: true, data: result });
+});
+
+export const deleteGodown = asyncHandler(async (req, res) => {
+  const result = await svc.deleteGodown(req.params.id);
+  await writeAudit(req, { action: 'godown.delete', entity: 'Godown', entityId: req.params.id });
+  res.json({ success: true, data: result });
+});
+
+export const deleteProduct = asyncHandler(async (req, res) => {
+  const result = await svc.deleteProduct(req.params.id);
+  await writeAudit(req, { action: 'product.delete', entity: 'Product', entityId: req.params.id });
+  res.json({ success: true, data: result });
+});
+
+export const deleteParty = asyncHandler(async (req, res) => {
+  const result = await svc.deleteParty(req.params.id);
+  await writeAudit(req, { action: 'party.delete', entity: 'Party', entityId: req.params.id });
+  res.json({ success: true, data: result });
+});

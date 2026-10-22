@@ -10,6 +10,7 @@ import userRoutes from './modules/users/users.routes.js';
 import masterdataRoutes from './modules/masterdata/masterdata.routes.js';
 import stockRoutes from './modules/stock/stock.routes.js';
 import purchaseRoutes from './modules/purchase/purchase.routes.js';
+import productionRoutes from './modules/production/production.routes.js'
 import dns  from "dns";
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/masterdata', masterdataRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/purchase', purchaseRoutes);
+app.use('/api/production', productionRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

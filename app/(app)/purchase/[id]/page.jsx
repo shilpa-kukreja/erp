@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Wallet, RotateCcw } from 'lucide-react';
 import { purchaseApi } from '@/lib/api';
 import { useAuth } from '@/app/components/providers/AuthProvider';
 import { useToast } from '@/app/components/providers/ToastProvider';
@@ -10,6 +10,10 @@ import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { ConfirmDialog } from '@/app/components/ui/alert-dialog';
 import { useState } from 'react';
+
+// Import our new components
+import { RecordPaymentDialog } from '@/app/components/purchase/RecordPaymentDialog';
+import { CreateReturnDialog } from '@/app/components/purchase/CreateReturnDialog';
 
 const rupees = (p) => `₹${(p / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
@@ -19,11 +23,27 @@ export default function PurchaseDetailPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
+  
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
+
   const canConfirm = ['owner', 'store', 'office'].includes(user?.role);
+  const canPay = ['owner', 'office'].includes(user?.role);
+  const canReturn = ['owner', 'office', 'store'].includes(user?.role);
 
   const q = useQuery({ queryKey: ['purchase', id], queryFn: () => purchaseApi.get(id) });
   const bill = q.data?.data?.bill;
+
+  // Fetch all unpaid bills for this supplier (for the allocation dropdown in payment dialog)
+  const supplierBillsQ = useQuery({
+    queryKey: ['purchases', { supplierId: bill?.supplierId, status: 'confirmed' }],
+    queryFn: () => purchaseApi.list({ supplierId: bill.supplierId, status: 'confirmed', limit: 100 }),
+    enabled: !!bill?.supplierId && paymentOpen,
+  });
+  
+  // Filter to only bills with balance > 0
+  const supplierUnpaidBills = (supplierBillsQ.data?.data?.items || []).filter(b => b.balancePaise > 0);
 
   const confirmMutation = useMutation({
     mutationFn: () => purchaseApi.confirm(id),
@@ -38,11 +58,12 @@ export default function PurchaseDetailPage() {
     onError: (e) => toast(e.message || 'Confirm failed', 'error'),
   });
 
-  if (q.isLoading) return <div className="text-muted-foreground">Loading…</div>;
-  if (!bill) return <div className="text-destructive">Purchase bill not found</div>;
+  if (q.isLoading) return <div className="text-muted-foreground p-6">Loading…</div>;
+  if (!bill) return <div className="text-destructive p-6">Purchase bill not found</div>;
 
   return (
     <div className="space-y-6">
+      {/* Header section */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/purchase"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /> Back</Button></Link>
@@ -52,13 +73,27 @@ export default function PurchaseDetailPage() {
           </div>
           <Badge variant={bill.status === 'confirmed' ? 'success' : 'outline'}>{bill.status}</Badge>
         </div>
-        {bill.status === 'draft' && canConfirm && (
-          <Button onClick={() => setConfirmOpen(true)}>
-            <CheckCircle2 className="h-4 w-4" /> Confirm & Receive Stock
-          </Button>
-        )}
+        
+        <div className="flex gap-2">
+          {bill.status === 'confirmed' && bill.balancePaise > 0 && canPay && (
+            <Button variant="outline" onClick={() => setPaymentOpen(true)}>
+              <Wallet className="h-4 w-4 mr-2" /> Record Payment
+            </Button>
+          )}
+          {bill.status === 'confirmed' && canReturn && (
+            <Button variant="outline" onClick={() => setReturnOpen(true)}>
+              <RotateCcw className="h-4 w-4 mr-2" /> Return Items
+            </Button>
+          )}
+          {bill.status === 'draft' && canConfirm && (
+            <Button onClick={() => setConfirmOpen(true)}>
+              <CheckCircle2 className="h-4 w-4 mr-2" /> Confirm & Receive
+            </Button>
+          )}
+        </div>
       </div>
 
+      {/* Info Cards */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-lg border bg-white p-4 space-y-1 text-sm">
           <div className="text-xs uppercase text-muted-foreground">Supplier</div>
@@ -79,6 +114,7 @@ export default function PurchaseDetailPage() {
         </div>
       </div>
 
+      {/* Items Table */}
       <div className="rounded-lg border bg-white overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/40 text-left">
@@ -111,6 +147,7 @@ export default function PurchaseDetailPage() {
         </table>
       </div>
 
+      {/* Totals Summary */}
       <div className="flex justify-end">
         <div className="w-full max-w-sm space-y-1 rounded-lg border bg-white p-4 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{rupees(bill.subTotalPaise)}</span></div>
@@ -121,6 +158,7 @@ export default function PurchaseDetailPage() {
         </div>
       </div>
 
+      {/* Notes */}
       {bill.notes && (
         <div className="rounded-lg border bg-white p-4">
           <div className="text-xs uppercase text-muted-foreground mb-1">Notes</div>
@@ -128,6 +166,7 @@ export default function PurchaseDetailPage() {
         </div>
       )}
 
+      {/* Dialogs */}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
@@ -136,6 +175,19 @@ export default function PurchaseDetailPage() {
         confirmText="Confirm & Receive"
         onConfirm={() => confirmMutation.mutate()}
         loading={confirmMutation.isPending}
+      />
+
+      <RecordPaymentDialog 
+        open={paymentOpen} 
+        onOpenChange={setPaymentOpen} 
+        bill={bill}
+        supplierBills={supplierUnpaidBills}
+      />
+
+      <CreateReturnDialog 
+        open={returnOpen} 
+        onOpenChange={setReturnOpen} 
+        bill={bill} 
       />
     </div>
   );
